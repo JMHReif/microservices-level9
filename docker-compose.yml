@@ -1,0 +1,49 @@
+version: "3.9"
+services:
+  goodreads-db:
+    container_name: goodreads-db
+    image: jmreif/mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=Testing123
+    ports:
+      - "27017:27017"
+    volumes:
+      - $HOME/Projects/docker/mongoBooks/data:/data/db
+      - $HOME/Projects/docker/mongoBooks/logs:/logs
+      - $HOME/Projects/docker/mongoBooks/tmp:/tmp
+    networks:
+      - goodreads
+  goodreads-config:
+    container_name: goodreads-config
+    image: jmreif/goodreads-config
+    ports:
+      - "8888:8888"
+    depends_on:
+      - goodreads-db
+    environment:
+      - SPRING_PROFILES_ACTIVE=native,docker
+    volumes:
+      - $HOME/Projects/config/microservices-java-config:/config
+      - $HOME/Projects/docker/goodreads/config-server/logs:/logs
+    networks:
+      - goodreads
+  goodreads-svc1:
+    container_name: goodreads-svc1
+    image: jmreif/goodreads-svc1
+    ports:
+      - "8081:8081"
+    depends_on:
+      - goodreads-config
+      - goodreads-db
+    command: ["./wait-for-it.sh", "goodreads-config:8888", "--", "java -jar", "goodreads-svc1.jar"]
+    environment:
+      - SPRING_APPLICATION_NAME=mongo-client
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://goodreads-config:8888
+      - SPRING_PROFILES_ACTIVE=native,docker
+    volumes:
+      - $HOME/Projects/docker/goodreads/service1/logs:/logs
+    networks:
+      - goodreads
+networks:
+  goodreads:

@@ -1,0 +1,17 @@
+= Starting and running Spring Cloud Config Server
+
+This folder contains steps and information for starting and running the Spring Cloud Config project.
+
+== Setting up the project
+
+First, you will need to create a new or download the config-server folder and this microservices-java-config folder from this project. Once complete, you can follow the remaining steps listed below.
+
+* Check config file into Github (not public/pushed repo, but locally). Commands are listed below. You need to do this to see changes!
+** From command line, navigate to microservices-java-config folder and execute `git init`.
+** Update the neo4j-client.yaml with your AuraDB free tier credentials (database URI, username, password, and database name - default `neo4j`).
+** Back at command line, execute `git add` to add the yaml file.
+** Run `git commit` to save changes to git.
+** No need to push to a remote private/public repository. This helps avoid accidental publishing of credentials. ;)
+
+* From an IDE or command line, run the config-server application.
+* Test the config server using the following command: `curl http://localhost:8888/neo4j-client/default`.

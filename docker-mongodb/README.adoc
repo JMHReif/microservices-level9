@@ -1,0 +1,173 @@
+= Docker image for MongoDB
+
+This image is a build of MongoDB's Docker image.
+
+== Building and running the image
+
+If you are running on Apple silicon architecture (arm64), you can use my build of the Docker container without creating one locally.
+
+However, if you are using a different architecture (amd64, Windows, Linux), you will need to build the image on your local machine with the following commands:
+
+[source,shell]
+----
+cd docker/
+
+docker build . -t mongodb
+----
+
+To run the container, execute the following command in the root directory (updating the script's `jmreif/mongodb` to `mongodb`):
+
+[source,shell]
+----
+./runMongoDB.sh
+----
+
+You can run a `docker ps` at the command line to verify the container is still running.
+
+== Loading Book data into MongoDB container
+
+Steps:
+
+* Copy JSON data files and load script to expected directory: 
+[source,shell]
+----
+cp loadData/goodreads_books_trim.json $HOME/Projects/docker/mongoBooks/data
+cp loadData/goodreads_reviews_dedup.json $HOME/Projects/docker/mongoBooks/data
+cp loadData/insert_books.sh $HOME/Projects/docker/mongoBooks/data
+----
+
+* SSH into container with bash: 
+[source,shell]
+----
+docker exec -it mongoBooks bash
+----
+
+* Create index on `book_id` field
+
+** Log into mongo shell (https://docs.mongodb.com/mongodb-shell/#mongodb-binary-bin.mongosh[`mongosh`^])
+[source,shell]
+----
+root@d861e71d3ef8:/data/db# mongosh -u mongoadmin -p Testing123
+Current Mongosh Log ID:	61fc309a5301e90f038efa24
+Connecting to:		mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.1.9
+Using MongoDB:		5.0.6
+Using Mongosh:		1.1.9
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+test>
+----
+
+** Create `goodreads` db, create index on `book_id` field for `book` collection, verify index, and exit mongo shell
+[source,shell]
+----
+test> use goodreads
+goodreads> db.book.createIndex({book_id: 1}, {unique: true})
+book_id_1
+goodreads> db.book.getIndexes()
+[
+  { v: 2, key: { _id: 1 }, name: '_id_' },
+  { v: 2, key: { book_id: 1 }, name: 'book_id_1', unique: true }
+]
+goodreads> exit
+----
+
+* Navigate to data directory (where script/csv are)
+[source,shell]
+----
+root@d861e71d3ef8:# cd /data/db
+root@d861e71d3ef8:/data/db# 
+----
+
+* Run insert scripts to load data (uses https://docs.mongodb.com/database-tools/mongoimport/[mongoimport^] tool)
+[source,shell]
+----
+root@d861e71d3ef8:/data/db# ./insert_books.sh
+2022-03-22T18:46:10.933+0000	connected to: mongodb://localhost/
+2022-03-22T18:46:13.398+0000	10000 document(s) imported successfully. 0 document(s) failed to import.
+root@d861e71d3ef8:/data/db# ./insert_authors.sh
+2022-03-22T18:46:52.382+0000	connected to: mongodb://localhost/
+2022-03-22T18:46:52.605+0000	12371 document(s) imported successfully. 0 document(s) failed to import.
+----
+
+_Note: may need to open permissions on scripts: `chmod 755 insert_books.sh` before running_
+
+* Verify data loaded
+
+** Log into mongo shell (https://docs.mongodb.com/mongodb-shell/#mongodb-binary-bin.mongosh[`mongosh`^])
+[source,shell]
+----
+root@d861e71d3ef8:/data/db# mongosh -u mongoadmin -p Testing123
+Current Mongosh Log ID:	61fc309a5301e90f038efa24
+Connecting to:		mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.1.9
+Using MongoDB:		5.0.6
+Using Mongosh:		1.1.9
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+test>
+----
+
+** Show existing databases, use `goodreads` db, and show collections (document types)
+[source,shell]
+----
+test> show dbs
+admin       102 kB
+books       1.6 MB
+config      111 kB
+goodreads  4.95 GB
+local      73.7 kB
+test> use goodreads
+switched to db goodreads
+goodreads> show collections
+author
+book
+goodreads> 
+----
+
+** Run some queries
+[source, shell]
+----
+goodreads> db.book.countDocuments()
+10000
+goodreads> db.book.findOne()
+{
+  _id: ObjectId("623a1d959ff4341c13cba55c"),
+  isbn: '0743509986',
+  text_reviews_count: '6',
+  country_code: 'US',
+  language_code: '',
+  asin: '',
+  is_ebook: 'false',
+  average_rating: '3.23',
+  kindle_asin: 'B000FC0PBC',
+  format: 'Audio CD',
+  link: 'https://www.goodreads.com/book/show/1333909.Good_Harbor',
+  authors: [ { author_id: '626222', role: '' } ],
+  publisher: 'Simon & Schuster Audio',
+  num_pages: '',
+  publication_day: '1',
+  isbn13: '9780743509985',
+  publication_month: '10',
+  edition_information: 'Abridged',
+  publication_year: '2001',
+  url: 'https://www.goodreads.com/book/show/1333909.Good_Harbor',
+  image_url: 'https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png',
+  book_id: '1333909',
+  ratings_count: '10',
+  work_id: '1323437',
+  title: 'Good Harbor',
+  title_without_series: 'Good Harbor'
+}
+goodreads> db.author.findOne()
+{
+  _id: ObjectId("623a48c1b6575ea3e8998112"),
+  text_reviews_count: '36262',
+  name: 'Jennifer Weiner',
+  average_rating: '3.68',
+  ratings_count: '888522',
+  author_id: '9212'
+}
+----
+
+_Note: if formatting of return results is poor or ugly, you can add `.pretty()` to the end of the query (`db.books.findOne().pretty()`)._

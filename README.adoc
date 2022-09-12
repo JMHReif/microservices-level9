@@ -1,0 +1,85 @@
+= Microservices Project: Level 9
+
+This project is part of a series for creating microservices. In this repository, we use the following technologies:
+
+* Spring Boot
+* Java
+* REST services
+* Lombok
+* Spring Data
+* MongoDB document database
+** loaded with Book/Author domain data
+* Docker and docker compose
+* Neo4j AuraDB free tier
+** load with Book/Author/Review domain data
+* Spring Cloud Config
+
+For the domain, we loaded a publicly-available https://sites.google.com/eng.ucsd.edu/ucsdbookgraph/home?authuser=0[UCSD Book Graph dataset^] that provides books and related information.
+
+== Architecture
+
+image::microservices-level9.png[]
+
+We have 4 data services in this repository: `service1`, `service2`, `service3`, and `service4`. Responsibilities of each service are outlined below, followed by the changes to execution.
+
+* Service1: backend service hosting the REST api for book data (MongoDB)
+* Service2: client REST service for calling service1 and returning books
+* Service3: backend service hosting the REST api for author data (MongoDB)
+* Service4: backend service hosting the REST api for review data (Neo4j)
+
+Services 1, 2, and 3 have been packaged into Docker containers, and we are using https://docs.docker.com/compose/[Docker Compose^] to run and manage the services together. With all services running in Docker containers, there were a few configuration changes needed, but the applications can communicate and pass data as before. Service4 is currently run locally, but will be containerized and added to our Docker Compose setup later.
+
+We also have a few supporting folders explained below.
+
+* Config-server: application service to set up the config server managing database credentials for applications
+* Data-neo4j: folder that includes steps and script for loading data set on books, authors, and reviews to Neo4j.
+* Docker-mongodb: folder containing steps and data for starting and loading books and authors data to MongoDB Docker container.
+* Microservices-java-config: holds sample YAML files containing database credentials.
+
+*Note:* Notes how to use the config yaml file are in the readme that folder.
+
+== Microservices functions
+
+There are a variety of reasons businesses and users might choose to develop applications in a microservices architecture. Some potential reasons are listed below.
+
+* Scalability
+* Functionality independence (separating grouped features, often for reliability)
+* Maintenance simplicity (changes only affect pieces, and less likely to impact whole)
+* Shift resource load (from large instance running single monolith application, to many smaller instances hosting/coordinating microservices)
+
+== Executing the services
+//LEFT OFF HERE!
+To reproduce this intro example, please follow the steps.
+
+ 1. Clone this repository
+ 2. Build each service's (1, 2, and 3) Docker container (note: if not on arm64 silicon chip, will need to update image names in compose file, as well).
+ 3. Execute Docker compose with `docker-compose up -d`.
+ 4. Test backing service (books): Open a command line window and execute `curl localhost:8081/db/books`.
+ 5. Test client service: Open a command line window and execute `curl localhost:8080/goodreads/books`.
+ 6. Test backing service (authors): Open a command line window and execute `curl localhost:8082/db/authors`.
+ 7. See the results of books or authors appear :)
+
+Separately, we can test Neo4j and service4 with additional steps.
+
+8. Create a free Neo4j AuraDB instance.
+9. Load the data using the steps in the `data-neo4j` folder.
+10. Start the config-server project from an IDE or command line.
+11. Test the config server: Open a command line window and execute `curl localhost:8888/neo4j-client/default`.
+12. Start the `service4` application from an IDE or command line.
+13. Test review backing service: Open a command line window and execute `curl localhost:8083/neo/reviews` or `curl localhost:8083/neo/reviews/178186`.
+14. See the results of reviews appear :)
+
+// == Content
+
+// * Blog post: https://jmhreif.com/blog/microservices-level9/[Microservices Level 9^]
+
+== Previous steps
+
+* https://github.com/JMHReif/microservices-level1[Level1] - Sending a string message from one Spring Boot app to another
+* https://github.com/JMHReif/microservices-level2[Level2] - Retrieving prepopulated Book data from one Spring Boot app to another
+* https://github.com/JMHReif/microservices-level3[Level3] - Storing Book data in MongoDB and retrieving all stored books
+* https://github.com/JMHReif/microservices-level4[Level4] - Adding new service for author data
+* https://github.com/JMHReif/microservices-level5[Level5] - Adding Docker compose to manage services as containers
+* https://github.com/JMHReif/microservices-level6[Level6] - Adding new service for review data (in Neo4j)
+* https://github.com/JMHReif/microservices-level7[Level7] - Adding Spring Cloud Config to manage Neo4j credentials
+* https://github.com/JMHReif/microservices-level8[Level8] - Adding MongoDB credentials to Spring Cloud Config
