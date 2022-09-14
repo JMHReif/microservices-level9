@@ -1,4 +1,13 @@
+# Enable all actuator endpoints FOR DEMO PURPOSES ONLY!
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
 spring:
+  application:
+    name: mongo-client
   data:
     mongodb:
       uri: <insert MongoDB URI here>

@@ -1,4 +1,13 @@
+# Enable all actuator endpoints FOR DEMO PURPOSES ONLY!
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
 spring:
+  application:
+    name: neo4j-client
   neo4j:
     uri: <insert Neo4j URI here>
     database: <insert Neo4j database here>
