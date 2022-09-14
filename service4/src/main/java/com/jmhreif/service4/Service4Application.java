@@ -10,6 +10,8 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 @SpringBootApplication
+@EnableRetry
 public class Service4Application {
 
 	public static void main(String[] args) {
@@ -34,9 +37,11 @@ class ReviewController {
 	@GetMapping
 	String liveCheck() { return "Service4 is up"; }
 
+	@Retryable
 	@GetMapping("/reviews")
 	Flux<Review> getReviews() { return reviewRepo.findFirst1000By(); }
 
+	@Retryable
 	@GetMapping("/reviews/{book_id}")
 	Flux<Review> getBookReviews(@PathVariable String book_id) { return reviewRepo.findReviewsByBook(book_id); }
 }

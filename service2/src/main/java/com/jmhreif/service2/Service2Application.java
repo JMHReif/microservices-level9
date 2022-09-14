@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
 @SpringBootApplication
+@EnableRetry
 public class Service2Application {
 	@Value("${backend.hostname:localhost}")
 	private String hostname;
@@ -37,6 +40,7 @@ class BookController {
 	@GetMapping
 	String liveCheck() { return "Service2 is up"; }
 
+	@Retryable
 	@GetMapping("/books")
 	Flux<Book> getBooks() {
 		return client.get()

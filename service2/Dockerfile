@@ -1,6 +1,6 @@
 #Pull base image
 #-----------------
-FROM openjdk:11
+FROM azul/zulu-openjdk:17
 
 #Author
 #-------

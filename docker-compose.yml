@@ -17,6 +17,7 @@ services:
   goodreads-config:
     container_name: goodreads-config
     image: jmreif/goodreads-config
+    # build: ./config-server
     ports:
       - "8888:8888"
     depends_on:
@@ -30,19 +31,60 @@ services:
       - goodreads
   goodreads-svc1:
     container_name: goodreads-svc1
-    image: jmreif/goodreads-svc1
+    image: jmreif/goodreads-svc1:lvl9
+    # build: ./service1
     ports:
       - "8081:8081"
     depends_on:
       - goodreads-config
-      - goodreads-db
-    command: ["./wait-for-it.sh", "goodreads-config:8888", "--", "java -jar", "goodreads-svc1.jar"]
+    restart: on-failure
     environment:
       - SPRING_APPLICATION_NAME=mongo-client
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://goodreads-config:8888
-      - SPRING_PROFILES_ACTIVE=native,docker
-    volumes:
-      - $HOME/Projects/docker/goodreads/service1/logs:/logs
+      - SPRING_CONFIG_IMPORT=configserver:http://goodreads-config:8888
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - goodreads
+  goodreads-svc2:
+    container_name: goodreads-svc2
+    image: jmreif/goodreads-svc2:lvl9
+    # build: ./service2
+    ports:
+      - "8080:8080"
+    depends_on:
+      - goodreads-svc1
+    restart: on-failure
+    environment:
+      - BACKEND_HOSTNAME=goodreads-svc1
+    networks:
+      - goodreads
+  goodreads-svc3:
+    container_name: goodreads-svc3
+    image: jmreif/goodreads-svc3:lvl9
+    # build: ./service3
+    ports:
+      - "8082:8082"
+    depends_on:
+      - goodreads-config
+    restart: on-failure
+    environment:
+      - SPRING_APPLICATION_NAME=mongo-client
+      - SPRING_CONFIG_IMPORT=configserver:http://goodreads-config:8888
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - goodreads
+  goodreads-svc4:
+    container_name: goodreads-svc4
+    image: jmreif/goodreads-svc4:lvl9
+    # build: ./service4
+    ports:
+      - "8083:8083"
+    depends_on:
+      - goodreads-config
+    restart: on-failure
+    environment:
+      - SPRING_APPLICATION_NAME=neo4j-client
+      - SPRING_CONFIG_IMPORT=configserver:http://goodreads-config:8888
+      - SPRING_PROFILES_ACTIVE=docker
     networks:
       - goodreads
 networks:

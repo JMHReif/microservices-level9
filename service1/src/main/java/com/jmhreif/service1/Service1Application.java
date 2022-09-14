@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,8 +18,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @SpringBootApplication
+@EnableRetry
 public class Service1Application {
-
 	public static void main(String[] args) {
 		SpringApplication.run(Service1Application.class, args);
 	}
@@ -32,9 +34,11 @@ class BookController {
 	@GetMapping
 	String liveCheck() { return "Service1 is up"; }
 
+	@Retryable
 	@GetMapping("/books")
 	Flux<Book> getBooks() { return bookRepository.findAll(); }
 
+	@Retryable
 	@GetMapping("/book/{mongoId}")
 	Mono<Book> getBook(@PathVariable String mongoId) { return bookRepository.findById(mongoId); }
 }
