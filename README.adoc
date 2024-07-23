@@ -61,9 +61,9 @@ To reproduce this example, please follow the steps.
  10. Test review backing service: Open a command line window and execute `curl localhost:8083/neo`, `curl localhost:8083/neo/reviews` or `curl localhost:8083/neo/reviews/178186`.
  11. Verify all results! :)
 
-// == Content
+== Content
 
-// * Blog post: https://jmhreif.com/blog/microservices-level9/[Microservices Level 9^]
+* Blog post: https://jmhreif.com/blog/2022/microservices-level9/[Microservices Level 9^]
 
 == Previous steps
 
